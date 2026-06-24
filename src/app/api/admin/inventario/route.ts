@@ -11,14 +11,28 @@ import {
   saveAdminCredentials,
 } from "@/lib/db";
 
-async function ensureDefaultAdmin() {
-  const admins = getAdminCredentials();
-  if (admins.length === 0) {
-    const hash = await bcrypt.hash("chapter21admin", 10);
-    admins.push({ username: "admin", passwordHash: hash });
-    saveAdminCredentials(admins);
+async function verifyAdminLogin(username: string, password: string): Promise<boolean> {
+  const envUser = process.env.ADMIN_USERNAME || "admin";
+  const envPass = process.env.ADMIN_PASSWORD || "chapter21admin";
+
+  if (username === envUser && password === envPass) {
+    return true;
   }
-  return admins;
+
+  try {
+    const admins = getAdminCredentials();
+    if (admins.length === 0) {
+      const hash = await bcrypt.hash(envPass, 10);
+      admins.push({ username: envUser, passwordHash: hash });
+      saveAdminCredentials(admins);
+      return username === envUser && password === envPass;
+    }
+    const admin = admins.find((a) => a.username === username);
+    if (!admin) return false;
+    return bcrypt.compare(password, admin.passwordHash);
+  } catch {
+    return username === envUser && password === envPass;
+  }
 }
 
 function isAdminAuthorized(req: NextRequest): boolean {
@@ -51,12 +65,7 @@ export async function POST(req: NextRequest) {
 
     if (action === "login") {
       const { username, password } = body;
-      const admins = await ensureDefaultAdmin();
-      const admin = admins.find((a) => a.username === username);
-      if (!admin) {
-        return NextResponse.json({ error: "Credenciales incorrectas" }, { status: 401 });
-      }
-      const valid = await bcrypt.compare(password, admin.passwordHash);
+      const valid = await verifyAdminLogin(username, password);
       if (!valid) {
         return NextResponse.json({ error: "Credenciales incorrectas" }, { status: 401 });
       }
