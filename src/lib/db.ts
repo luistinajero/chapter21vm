@@ -100,6 +100,21 @@ export function saveOrders(orders: Order[]) {
   writeJson("orders.json", orders);
 }
 
+// Password reset tokens
+interface ResetToken {
+  email: string;
+  token: string;
+  expires: number;
+}
+
+export function getResetTokens(): ResetToken[] {
+  return readJson<ResetToken[]>("reset-tokens.json", []);
+}
+
+export function saveResetTokens(tokens: ResetToken[]) {
+  writeJson("reset-tokens.json", tokens);
+}
+
 // Admin credentials
 interface AdminCredential {
   username: string;

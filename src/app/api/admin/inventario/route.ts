@@ -7,6 +7,10 @@ import {
   saveBooks,
   getOrders,
   saveOrders,
+  getUsers,
+  saveUsers,
+  getCredentials,
+  saveCredentials,
   getAdminCredentials,
   saveAdminCredentials,
 } from "@/lib/db";
@@ -53,6 +57,10 @@ export async function GET(req: NextRequest) {
 
   if (type === "orders") {
     return NextResponse.json({ orders: getOrders() });
+  }
+
+  if (type === "users") {
+    return NextResponse.json({ users: getUsers() });
   }
 
   return NextResponse.json({ books: getBooks() });
@@ -106,6 +114,19 @@ export async function POST(req: NextRequest) {
       if (order) {
         order.estado = estado;
         saveOrders(orders);
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "deleteUser") {
+      const { userId } = body;
+      const allUsers = getUsers();
+      const deletedUser = allUsers.find((u) => u.id === userId);
+      const remaining = allUsers.filter((u) => u.id !== userId);
+      saveUsers(remaining);
+      if (deletedUser) {
+        const creds = getCredentials().filter((c) => c.email !== deletedUser.email);
+        saveCredentials(creds);
       }
       return NextResponse.json({ success: true });
     }

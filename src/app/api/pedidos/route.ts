@@ -59,7 +59,9 @@ export async function POST(req: NextRequest) {
         month: "long",
         day: "numeric",
       }),
-      direccionEnvio: user.direccion,
+      direccionEnvio: typeof user.direccion === "string"
+        ? user.direccion
+        : `${user.direccion.calle} ${user.direccion.numero}, ${user.direccion.ciudad}, ${user.direccion.estado}, ${user.direccion.pais} CP ${user.direccion.codigoPostal}`,
     };
 
     const orders = getOrders();

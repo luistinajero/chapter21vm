@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CATEGORIAS, IDIOMAS } from "@/lib/types";
-import type { Book, Order } from "@/lib/types";
-import { Lock, Package, BookOpen, Plus, Trash2, LogOut } from "lucide-react";
+import type { Book, Order, User } from "@/lib/types";
+import { Lock, Package, BookOpen, Plus, Trash2, LogOut, Users } from "lucide-react";
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -12,7 +12,8 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [books, setBooks] = useState<Book[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<"inventario" | "pedidos">("inventario");
+  const [users, setUsers] = useState<User[]>([]);
+  const [activeTab, setActiveTab] = useState<"inventario" | "pedidos" | "usuarios">("inventario");
   const [adminToken, setAdminToken] = useState("");
 
   // New book form
@@ -42,16 +43,20 @@ export default function AdminPage() {
   };
 
   const loadData = async (token: string) => {
-    const [booksRes, ordersRes] = await Promise.all([
+    const [booksRes, ordersRes, usersRes] = await Promise.all([
       fetch("/api/admin/inventario", {
         headers: { Authorization: `Bearer ${token}` },
       }),
       fetch("/api/admin/inventario?type=orders", {
         headers: { Authorization: `Bearer ${token}` },
       }),
+      fetch("/api/admin/inventario?type=users", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
     ]);
     if (booksRes.ok) setBooks((await booksRes.json()).books);
     if (ordersRes.ok) setOrders((await ordersRes.json()).orders);
+    if (usersRes.ok) setUsers((await usersRes.json()).users);
   };
 
   const addBook = async () => {
@@ -82,6 +87,18 @@ export default function AdminPage() {
         Authorization: `Bearer ${adminToken}`,
       },
       body: JSON.stringify({ action: "delete", bookId: id }),
+    });
+    if (res.ok) loadData(adminToken);
+  };
+
+  const deleteUser = async (userId: string) => {
+    const res = await fetch("/api/admin/inventario", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({ action: "deleteUser", userId }),
     });
     if (res.ok) loadData(adminToken);
   };
@@ -138,6 +155,11 @@ export default function AdminPage() {
     );
   }
 
+  const formatAddress = (dir: User["direccion"]) => {
+    if (typeof dir === "string") return dir;
+    return `${dir.calle} ${dir.numero}, ${dir.ciudad}, ${dir.estado}, ${dir.pais} CP ${dir.codigoPostal}`;
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
@@ -172,11 +194,21 @@ export default function AdminPage() {
         >
           <Package className="w-4 h-4" /> Pedidos
         </button>
+        <button
+          onClick={() => setActiveTab("usuarios")}
+          className={`pb-2 px-4 font-medium flex items-center gap-2 ${
+            activeTab === "usuarios"
+              ? "border-b-2 border-[var(--color-accent)] text-[var(--color-accent)]"
+              : "text-gray-500"
+          }`}
+        >
+          <Users className="w-4 h-4" /> Usuarios
+        </button>
       </div>
 
+      {/* INVENTARIO TAB */}
       {activeTab === "inventario" && (
         <>
-          {/* Add book form */}
           <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
             <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
               <Plus className="w-5 h-5" /> Agregar al inventario
@@ -221,7 +253,6 @@ export default function AdminPage() {
             </button>
           </div>
 
-          {/* Book list */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
@@ -272,6 +303,7 @@ export default function AdminPage() {
         </>
       )}
 
+      {/* PEDIDOS TAB */}
       {activeTab === "pedidos" && (
         <div className="space-y-4">
           {orders.length === 0 ? (
@@ -311,6 +343,59 @@ export default function AdminPage() {
                 <p className="text-right font-bold mt-2">Total: ${order.total} MXN</p>
               </div>
             ))
+          )}
+        </div>
+      )}
+
+      {/* USUARIOS TAB */}
+      {activeTab === "usuarios" && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl p-4 border border-gray-200 mb-2">
+            <p className="text-sm text-gray-500">{users.length} usuario(s) registrado(s)</p>
+          </div>
+
+          {users.length === 0 ? (
+            <div className="bg-white rounded-xl p-8 border border-gray-200 text-center text-gray-400">
+              No hay usuarios registrados
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left p-4">Nombre</th>
+                    <th className="text-left p-4">Email</th>
+                    <th className="text-left p-4">Teléfono</th>
+                    <th className="text-left p-4">Dirección</th>
+                    <th className="text-left p-4">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.id} className="border-t border-gray-100">
+                      <td className="p-4 font-medium">{user.nombre}</td>
+                      <td className="p-4">{user.email}</td>
+                      <td className="p-4">{user.telefono}</td>
+                      <td className="p-4 text-xs text-gray-600 max-w-xs truncate">
+                        {formatAddress(user.direccion)}
+                      </td>
+                      <td className="p-4">
+                        <button
+                          onClick={() => {
+                            if (confirm(`¿Eliminar al usuario ${user.nombre}?`)) {
+                              deleteUser(user.id);
+                            }
+                          }}
+                          className="text-red-400 hover:text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}

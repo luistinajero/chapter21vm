@@ -13,6 +13,10 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const registered = searchParams.get("registered");
   const redirect = searchParams.get("redirect") || "/catalogo";
@@ -30,6 +34,89 @@ function LoginForm() {
     }
     setLoading(false);
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setForgotLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+
+      if (res.ok) {
+        setForgotSent(true);
+      } else {
+        const data = await res.json();
+        setError(data.error || "Error al enviar correo");
+      }
+    } catch {
+      setError("Error de conexión");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  if (forgotMode) {
+    if (forgotSent) {
+      return (
+        <div className="text-center">
+          <div className="text-4xl mb-4">📧</div>
+          <h2 className="text-xl font-bold text-[var(--color-primary)] mb-2">¡Correo enviado!</h2>
+          <p className="text-gray-600 mb-6">
+            Si el email está registrado, recibirás un enlace para cambiar tu contraseña.
+          </p>
+          <button
+            onClick={() => { setForgotMode(false); setForgotSent(false); }}
+            className="text-[var(--color-accent)] font-medium hover:underline"
+          >
+            Volver al inicio de sesión
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{error}</div>
+        )}
+        <form onSubmit={handleForgotPassword} className="space-y-4">
+          <p className="text-sm text-gray-600 mb-2">
+            Ingresa tu email y te enviaremos un enlace para recuperar tu contraseña.
+          </p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              required
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent outline-none"
+              placeholder="tu@email.com"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={forgotLoading}
+            className="w-full btn-primary py-3 text-lg disabled:opacity-50"
+          >
+            {forgotLoading ? "Enviando..." : "Enviar enlace de recuperación"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setForgotMode(false)}
+            className="w-full text-sm text-gray-500 hover:text-[var(--color-accent)]"
+          >
+            Volver al inicio de sesión
+          </button>
+        </form>
+      </>
+    );
+  }
 
   return (
     <>
@@ -74,6 +161,14 @@ function LoginForm() {
           className="w-full btn-primary py-3 text-lg disabled:opacity-50"
         >
           {loading ? "Ingresando..." : "Ingresar"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setForgotMode(true)}
+          className="w-full text-sm text-gray-500 hover:text-[var(--color-accent)] transition-colors"
+        >
+          ¿Olvidaste tu contraseña?
         </button>
       </form>
     </>

@@ -13,12 +13,21 @@ export interface CartItem {
   precio: number;
 }
 
+export interface UserAddress {
+  calle: string;
+  numero: string;
+  ciudad: string;
+  estado: string;
+  pais: string;
+  codigoPostal: string;
+}
+
 export interface User {
   id: string;
   nombre: string;
   email: string;
-  direccion: string;
   telefono: string;
+  direccion: UserAddress;
 }
 
 export interface Order {

@@ -11,6 +11,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Todos los campos son requeridos" }, { status: 400 });
     }
 
+    if (!direccion.calle || !direccion.numero || !direccion.ciudad || !direccion.estado || !direccion.pais || !direccion.codigoPostal) {
+      return NextResponse.json({ error: "Todos los campos de dirección son requeridos" }, { status: 400 });
+    }
+
     const users = getUsers();
     if (users.find((u) => u.email === email)) {
       return NextResponse.json({ error: "Este email ya está registrado" }, { status: 400 });
@@ -19,7 +23,7 @@ export async function POST(req: NextRequest) {
     const id = uuid();
     const passwordHash = await bcrypt.hash(password, 10);
 
-    users.push({ id, nombre, email, direccion, telefono });
+    users.push({ id, nombre, email, telefono, direccion });
     saveUsers(users);
 
     const credentials = getCredentials();
