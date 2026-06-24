@@ -36,3 +36,40 @@ export async function sendPasswordResetEmail(email: string, resetToken: string) 
 
   await transporter.sendMail(mailOptions);
 }
+
+export async function sendOrderNotificationEmail(order: {
+  orderId: string;
+  customerName: string;
+  customerEmail: string;
+  items: { categoria: string; idioma: string; cantidad: number; precio: number }[];
+  total: number;
+  direccion: string;
+}) {
+  const adminEmail = process.env.ORDER_NOTIFICATION_EMAIL || process.env.SMTP_USER || "";
+  if (!adminEmail) return;
+
+  const itemsHtml = order.items
+    .map((item) => `<li>${item.cantidad}x ${item.categoria} (${item.idioma}) — $${item.precio * item.cantidad} MXN</li>`)
+    .join("");
+
+  const mailOptions = {
+    from: `"Chapter 21" <${process.env.SMTP_USER || "noreply@chapter21.com"}>`,
+    to: adminEmail,
+    subject: `Nuevo Pedido #${order.orderId.slice(0, 8)} — Chapter 21`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #2d1b69;">Nuevo Pedido</h2>
+        <p><strong>Cliente:</strong> ${order.customerName} (${order.customerEmail})</p>
+        <p><strong>Dirección de envío:</strong></p>
+        <p style="color: #555;">${order.direccion}</p>
+        <p><strong>Artículos:</strong></p>
+        <ul>${itemsHtml}</ul>
+        <p style="font-size: 18px; font-weight: bold; color: #2d1b69;">Total: $${order.total} MXN</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p style="color: #999; font-size: 12px;">Chapter 21 — Libros Sorpresa</p>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+}

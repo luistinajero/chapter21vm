@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { getOrdersByUserId, createOrder, getUserById } from "@/lib/db";
+import { sendOrderNotificationEmail } from "@/lib/email";
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
@@ -64,6 +65,19 @@ export async function POST(req: NextRequest) {
       direccionEnvio,
       fecha,
     });
+
+    try {
+      await sendOrderNotificationEmail({
+        orderId,
+        customerName: user.nombre,
+        customerEmail: user.email,
+        items,
+        total,
+        direccion: direccionEnvio,
+      });
+    } catch (emailErr) {
+      console.error("Error sending order notification email:", emailErr);
+    }
 
     return NextResponse.json({ success: true, orderId });
   } catch {

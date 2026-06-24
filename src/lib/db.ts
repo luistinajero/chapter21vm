@@ -84,7 +84,10 @@ export async function createUser(user: {
     .select("id")
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("Supabase createUser error:", error);
+    throw new Error(error.message);
+  }
   return data.id;
 }
 
@@ -202,7 +205,10 @@ export async function createOrder(order: {
     .select("id")
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("Supabase createOrder error:", error);
+    throw new Error(error.message);
+  }
 
   const orderItems = order.items.map((item) => ({
     order_id: data.id,
@@ -212,7 +218,11 @@ export async function createOrder(order: {
     precio: item.precio,
   }));
 
-  await supabase.from("order_items").insert(orderItems);
+  const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+  if (itemsError) {
+    console.error("Supabase order_items error:", itemsError);
+  }
+
   return data.id;
 }
 
