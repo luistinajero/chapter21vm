@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #1a1a2e;
-  --color-secondary: #16213e;
-  --color-accent: #e94560;
-  --color-gold: #d4a574;
-  --color-cream: #faf3e0;
+  --color-primary: #2d1b69;
+  --color-secondary: #1e1245;
+  --color-accent: #a855f7;
+  --color-gold: #c4b5fd;
+  --color-cream: #f5f3ff;
 }
 
 body {
@@ -13,7 +13,7 @@ body {
 }
 
 .gradient-hero {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 50%, #0f3460 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 50%, #3b1d8e 100%);
 }
 
 .card-hover {
@@ -33,7 +33,7 @@ body {
   transition: background 0.2s ease, transform 0.1s ease;
 }
 .btn-primary:hover {
-  background: #d63851;
+  background: #9333ea;
   transform: scale(1.02);
 }
 
@@ -46,6 +46,6 @@ body {
   transition: background 0.2s ease, transform 0.1s ease;
 }
 .btn-gold:hover {
-  background: #c4955a;
+  background: #a78bfa;
   transform: scale(1.02);
 }
