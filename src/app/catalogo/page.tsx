@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { CATEGORIAS, IDIOMAS } from "@/lib/types";
-import { ShoppingCart, Check } from "lucide-react";
+import { ShoppingCart, Check, AlertTriangle } from "lucide-react";
 
 const PRECIO_LIBRO = 250;
 
@@ -12,9 +12,27 @@ export default function CatalogoPage() {
   const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
   const [selectedIdioma, setSelectedIdioma] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
+  const [inventory, setInventory] = useState<Record<string, number>>({});
+  const [loadingInventory, setLoadingInventory] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/libros")
+      .then((res) => res.json())
+      .then((data) => setInventory(data.inventory || {}))
+      .catch(() => {})
+      .finally(() => setLoadingInventory(false));
+  }, []);
+
+  const getStock = (): number => {
+    if (!selectedCategoria || !selectedIdioma) return 0;
+    const key = `${selectedCategoria}__${selectedIdioma}`;
+    return inventory[key] || 0;
+  };
+
+  const hasStock = getStock() > 0;
 
   const handleAddToCart = () => {
-    if (!selectedCategoria || !selectedIdioma) return;
+    if (!selectedCategoria || !selectedIdioma || !hasStock) return;
 
     const cat = CATEGORIAS.find((c) => c.id === selectedCategoria);
     addItem({
@@ -27,6 +45,8 @@ export default function CatalogoPage() {
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
+
+  const isSelectionComplete = selectedCategoria && selectedIdioma;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
@@ -105,12 +125,29 @@ export default function CatalogoPage() {
             <p className="text-2xl font-bold text-[var(--color-primary)] mt-1">
               ${PRECIO_LIBRO} MXN
             </p>
+
+            {/* Inventory status */}
+            {isSelectionComplete && !loadingInventory && (
+              <div className="mt-2">
+                {hasStock ? (
+                  <span className="text-sm text-green-600 font-medium">
+                    ✓ Disponible ({getStock()} en stock)
+                  </span>
+                ) : (
+                  <span className="text-sm text-red-500 font-medium flex items-center gap-1">
+                    <AlertTriangle className="w-4 h-4" />
+                    Agotado — no hay inventario disponible
+                  </span>
+                )}
+              </div>
+            )}
           </div>
+
           <button
             onClick={handleAddToCart}
-            disabled={!selectedCategoria || !selectedIdioma}
+            disabled={!isSelectionComplete || !hasStock}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-              !selectedCategoria || !selectedIdioma
+              !isSelectionComplete || !hasStock
                 ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                 : added
                 ? "bg-green-500 text-white"

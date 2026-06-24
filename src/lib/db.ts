@@ -1,8 +1,9 @@
 import { Book, Order, User } from "./types";
 
 /**
- * Simple JSON-file database for development.
- * In production, replace with Supabase/PostgreSQL.
+ * JSON-file database with in-memory fallback.
+ * Uses filesystem locally, falls back to memory on Vercel (read-only fs).
+ * For production persistence on Vercel, replace with Supabase/PostgreSQL.
  */
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
@@ -10,26 +11,52 @@ import { join } from "path";
 
 const DB_DIR = join(process.cwd(), "data");
 
-function ensureDbDir() {
-  if (!existsSync(DB_DIR)) {
-    mkdirSync(DB_DIR, { recursive: true });
+const memoryStore: Record<string, unknown> = {};
+
+function canWriteFs(): boolean {
+  try {
+    if (!existsSync(DB_DIR)) {
+      mkdirSync(DB_DIR, { recursive: true });
+    }
+    return true;
+  } catch {
+    return false;
   }
 }
 
+const useFs = canWriteFs();
+
 function readJson<T>(filename: string, defaultValue: T): T {
-  ensureDbDir();
-  const filepath = join(DB_DIR, filename);
-  if (!existsSync(filepath)) {
-    writeFileSync(filepath, JSON.stringify(defaultValue, null, 2));
-    return defaultValue;
+  if (useFs) {
+    const filepath = join(DB_DIR, filename);
+    if (!existsSync(filepath)) {
+      writeFileSync(filepath, JSON.stringify(defaultValue, null, 2));
+      return defaultValue;
+    }
+    try {
+      return JSON.parse(readFileSync(filepath, "utf-8"));
+    } catch {
+      return defaultValue;
+    }
   }
-  return JSON.parse(readFileSync(filepath, "utf-8"));
+
+  if (!(filename in memoryStore)) {
+    memoryStore[filename] = defaultValue;
+  }
+  return memoryStore[filename] as T;
 }
 
 function writeJson<T>(filename: string, data: T) {
-  ensureDbDir();
-  const filepath = join(DB_DIR, filename);
-  writeFileSync(filepath, JSON.stringify(data, null, 2));
+  if (useFs) {
+    const filepath = join(DB_DIR, filename);
+    try {
+      writeFileSync(filepath, JSON.stringify(data, null, 2));
+    } catch {
+      memoryStore[filename] = data;
+    }
+  } else {
+    memoryStore[filename] = data;
+  }
 }
 
 // Books/Inventory
@@ -80,8 +107,7 @@ interface AdminCredential {
 }
 
 export function getAdminCredentials(): AdminCredential[] {
-  const defaultAdmin: AdminCredential[] = [];
-  return readJson<AdminCredential[]>("admin.json", defaultAdmin);
+  return readJson<AdminCredential[]>("admin.json", []);
 }
 
 export function saveAdminCredentials(admins: AdminCredential[]) {
