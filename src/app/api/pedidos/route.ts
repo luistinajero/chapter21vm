@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuid } from "uuid";
 import { verifyToken } from "@/lib/auth";
-import { getOrders, saveOrders, getUsers } from "@/lib/db";
+import { getOrdersByUserId, createOrder, getUserById } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
@@ -15,7 +14,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Token inválido" }, { status: 401 });
   }
 
-  const orders = getOrders().filter((o) => o.userId === payload.id);
+  const orders = await getOrdersByUserId(payload.id);
   return NextResponse.json({ orders });
 }
 
@@ -37,8 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "El carrito está vacío" }, { status: 400 });
     }
 
-    const users = getUsers();
-    const user = users.find((u) => u.id === payload.id);
+    const user = await getUserById(payload.id);
     if (!user) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
@@ -48,27 +46,26 @@ export async function POST(req: NextRequest) {
       0
     );
 
-    const order = {
-      id: uuid(),
+    const dir = user.direccion;
+    const direccionEnvio = typeof dir === "string"
+      ? dir
+      : `${dir.calle} ${dir.numero}, ${dir.ciudad}, ${dir.estado}, ${dir.pais} CP ${dir.codigoPostal}`;
+
+    const fecha = new Date().toLocaleDateString("es-MX", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    const orderId = await createOrder({
       userId: payload.id,
       items,
       total,
-      estado: "pendiente" as const,
-      fecha: new Date().toLocaleDateString("es-MX", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-      direccionEnvio: typeof user.direccion === "string"
-        ? user.direccion
-        : `${user.direccion.calle} ${user.direccion.numero}, ${user.direccion.ciudad}, ${user.direccion.estado}, ${user.direccion.pais} CP ${user.direccion.codigoPostal}`,
-    };
+      direccionEnvio,
+      fecha,
+    });
 
-    const orders = getOrders();
-    orders.push(order);
-    saveOrders(orders);
-
-    return NextResponse.json({ success: true, order });
+    return NextResponse.json({ success: true, orderId });
   } catch {
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }

@@ -1,43 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import { v4 as uuid } from "uuid";
 import { verifyToken, createToken } from "@/lib/auth";
 import {
   getBooks,
-  saveBooks,
+  addBook,
+  deleteBook,
   getOrders,
-  saveOrders,
+  updateOrderStatus,
   getUsers,
-  saveUsers,
-  getCredentials,
-  saveCredentials,
-  getAdminCredentials,
-  saveAdminCredentials,
+  deleteUser,
+  verifyAdminCredentials,
 } from "@/lib/db";
-
-async function verifyAdminLogin(username: string, password: string): Promise<boolean> {
-  const envUser = process.env.ADMIN_USERNAME || "admin";
-  const envPass = process.env.ADMIN_PASSWORD || "chapter21admin";
-
-  if (username === envUser && password === envPass) {
-    return true;
-  }
-
-  try {
-    const admins = getAdminCredentials();
-    if (admins.length === 0) {
-      const hash = await bcrypt.hash(envPass, 10);
-      admins.push({ username: envUser, passwordHash: hash });
-      saveAdminCredentials(admins);
-      return username === envUser && password === envPass;
-    }
-    const admin = admins.find((a) => a.username === username);
-    if (!admin) return false;
-    return bcrypt.compare(password, admin.passwordHash);
-  } catch {
-    return username === envUser && password === envPass;
-  }
-}
 
 function isAdminAuthorized(req: NextRequest): boolean {
   const authHeader = req.headers.get("authorization");
@@ -56,14 +28,17 @@ export async function GET(req: NextRequest) {
   const type = url.searchParams.get("type");
 
   if (type === "orders") {
-    return NextResponse.json({ orders: getOrders() });
+    const orders = await getOrders();
+    return NextResponse.json({ orders });
   }
 
   if (type === "users") {
-    return NextResponse.json({ users: getUsers() });
+    const users = await getUsers();
+    return NextResponse.json({ users });
   }
 
-  return NextResponse.json({ books: getBooks() });
+  const books = await getBooks();
+  return NextResponse.json({ books });
 }
 
 export async function POST(req: NextRequest) {
@@ -73,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     if (action === "login") {
       const { username, password } = body;
-      const valid = await verifyAdminLogin(username, password);
+      const valid = await verifyAdminCredentials(username, password);
       if (!valid) {
         return NextResponse.json({ error: "Credenciales incorrectas" }, { status: 401 });
       }
@@ -81,53 +56,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ token });
     }
 
-    // All other actions require admin auth
     if (!isAdminAuthorized(req)) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     if (action === "add") {
       const { book } = body;
-      const books = getBooks();
-      books.push({
-        id: uuid(),
+      await addBook({
         categoria: book.categoria,
         idioma: book.idioma,
         precio: book.precio,
         stock: book.stock,
       });
-      saveBooks(books);
       return NextResponse.json({ success: true });
     }
 
     if (action === "delete") {
-      const { bookId } = body;
-      const books = getBooks().filter((b) => b.id !== bookId);
-      saveBooks(books);
+      await deleteBook(body.bookId);
       return NextResponse.json({ success: true });
     }
 
     if (action === "updateOrder") {
-      const { orderId, estado } = body;
-      const orders = getOrders();
-      const order = orders.find((o) => o.id === orderId);
-      if (order) {
-        order.estado = estado;
-        saveOrders(orders);
-      }
+      await updateOrderStatus(body.orderId, body.estado);
       return NextResponse.json({ success: true });
     }
 
     if (action === "deleteUser") {
-      const { userId } = body;
-      const allUsers = getUsers();
-      const deletedUser = allUsers.find((u) => u.id === userId);
-      const remaining = allUsers.filter((u) => u.id !== userId);
-      saveUsers(remaining);
-      if (deletedUser) {
-        const creds = getCredentials().filter((c) => c.email !== deletedUser.email);
-        saveCredentials(creds);
-      }
+      await deleteUser(body.userId);
       return NextResponse.json({ success: true });
     }
 

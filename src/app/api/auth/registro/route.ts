@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { v4 as uuid } from "uuid";
-import { getUsers, saveUsers, getCredentials, saveCredentials } from "@/lib/db";
+import { getUserByEmail, createUser } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,23 +14,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Todos los campos de dirección son requeridos" }, { status: 400 });
     }
 
-    const users = getUsers();
-    if (users.find((u) => u.email === email)) {
+    const existing = await getUserByEmail(email);
+    if (existing) {
       return NextResponse.json({ error: "Este email ya está registrado" }, { status: 400 });
     }
 
-    const id = uuid();
     const passwordHash = await bcrypt.hash(password, 10);
 
-    users.push({ id, nombre, email, telefono, direccion });
-    saveUsers(users);
-
-    const credentials = getCredentials();
-    credentials.push({ email, passwordHash });
-    saveCredentials(credentials);
+    await createUser({ nombre, email, telefono, direccion, passwordHash });
 
     return NextResponse.json({ success: true, message: "Cuenta creada exitosamente" });
-  } catch {
+  } catch (err) {
+    console.error("Registration error:", err);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
