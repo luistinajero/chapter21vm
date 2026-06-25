@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORIAS_POR_IDIOMA, IDIOMAS } from "@/lib/types";
+import { CATEGORIAS_POR_IDIOMA, IDIOMAS, getCategoriaLabel, getIdiomaLabel } from "@/lib/types";
 import type { Book, Order, User } from "@/lib/types";
 import { Lock, Package, BookOpen, Plus, Trash2, LogOut, Users } from "lucide-react";
 
@@ -204,6 +204,12 @@ export default function AdminPage() {
   const formatAddress = (dir: User["direccion"]) => {
     if (typeof dir === "string") return dir;
     return `${dir.calle} ${dir.numero}, ${dir.ciudad}, ${dir.estado}, ${dir.pais} CP ${dir.codigoPostal}`;
+  };
+
+  const formatPreferences = (u: User) => {
+    const idiomas = u.idiomasPreferidos.map(getIdiomaLabel).join(", ") || "—";
+    const categorias = u.categoriasPreferidas.map(getCategoriaLabel).join(", ") || "—";
+    return { idiomas, categorias };
   };
 
   return (
@@ -485,21 +491,28 @@ export default function AdminPage() {
                     <th className="text-left p-4">Nombre</th>
                     <th className="text-left p-4">Email</th>
                     <th className="text-left p-4">Teléfono</th>
+                    <th className="text-left p-4">Idiomas</th>
+                    <th className="text-left p-4">Géneros</th>
                     <th className="text-left p-4">Dirección</th>
                     <th className="text-left p-4">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
+                  {users.map((user) => {
+                    const prefs = formatPreferences(user);
+                    return (
                     <tr key={user.id} className="border-t border-gray-100">
                       <td className="p-4 font-medium">{user.nombre}</td>
                       <td className="p-4">{user.email}</td>
                       <td className="p-4">{user.telefono}</td>
+                      <td className="p-4 text-xs text-gray-600 max-w-[120px]">{prefs.idiomas}</td>
+                      <td className="p-4 text-xs text-gray-600 max-w-[160px]">{prefs.categorias}</td>
                       <td className="p-4 text-xs text-gray-600 max-w-xs truncate">
                         {formatAddress(user.direccion)}
                       </td>
                       <td className="p-4">
                         <button
+                          type="button"
                           onClick={() => {
                             if (confirm(`¿Eliminar al usuario ${user.nombre}?`)) {
                               deleteUser(user.id);
@@ -511,7 +524,8 @@ export default function AdminPage() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

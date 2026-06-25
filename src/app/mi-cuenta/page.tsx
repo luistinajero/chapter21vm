@@ -3,12 +3,14 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Package, User } from "lucide-react";
-import type { Order } from "@/lib/types";
+import { Package, User, BookOpen } from "lucide-react";
+import type { Order, User as UserProfile } from "@/lib/types";
+import { getCategoriaLabel, getIdiomaLabel } from "@/lib/types";
 
 export default function MiCuentaPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
@@ -21,11 +23,20 @@ export default function MiCuentaPage() {
   useEffect(() => {
     if (user) {
       const token = localStorage.getItem("chapter21-token");
-      fetch("/api/pedidos", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => res.json())
-        .then((data) => setOrders(data.orders || []))
+      Promise.all([
+        fetch("/api/auth/perfil", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/pedidos", { headers: { Authorization: `Bearer ${token}` } }),
+      ])
+        .then(async ([profileRes, ordersRes]) => {
+          if (profileRes.ok) {
+            const data = await profileRes.json();
+            setProfile(data.user);
+          }
+          if (ordersRes.ok) {
+            const data = await ordersRes.json();
+            setOrders(data.orders || []);
+          }
+        })
         .finally(() => setLoadingOrders(false));
     }
   }, [user]);
@@ -42,7 +53,6 @@ export default function MiCuentaPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
-      {/* User Info */}
       <div className="bg-white rounded-xl p-6 border border-gray-200 mb-8">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-12 h-12 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
@@ -53,9 +63,29 @@ export default function MiCuentaPage() {
             <p className="text-gray-600">{user.email}</p>
           </div>
         </div>
+
+        {profile && (profile.idiomasPreferidos.length > 0 || profile.categoriasPreferidas.length > 0) && (
+          <div className="pt-4 border-t border-gray-100">
+            <h2 className="text-sm font-semibold text-[var(--color-primary)] mb-3 flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Mis preferencias de lectura
+            </h2>
+            {profile.idiomasPreferidos.length > 0 && (
+              <p className="text-sm text-gray-600 mb-2">
+                <span className="font-medium">Idiomas:</span>{" "}
+                {profile.idiomasPreferidos.map(getIdiomaLabel).join(", ")}
+              </p>
+            )}
+            {profile.categoriasPreferidas.length > 0 && (
+              <p className="text-sm text-gray-600">
+                <span className="font-medium">Géneros favoritos:</span>{" "}
+                {profile.categoriasPreferidas.map(getCategoriaLabel).join(", ")}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Orders */}
       <h2 className="text-xl font-bold text-[var(--color-primary)] mb-4 flex items-center gap-2">
         <Package className="w-5 h-5" />
         Mis Pedidos
@@ -66,8 +96,8 @@ export default function MiCuentaPage() {
       ) : orders.length === 0 ? (
         <div className="bg-white rounded-xl p-8 border border-gray-200 text-center">
           <p className="text-gray-500 mb-4">Aún no tienes pedidos</p>
-          <a href="/catalogo" className="btn-primary inline-block">
-            Explorar catálogo
+          <a href="/libros-sorpresa" className="btn-primary inline-block">
+            Explorar libros
           </a>
         </div>
       ) : (
@@ -86,7 +116,7 @@ export default function MiCuentaPage() {
               <div className="space-y-1">
                 {order.items.map((item, i) => (
                   <p key={i} className="text-sm text-gray-700">
-                    {item.cantidad}x Libro Sorpresa — {item.categoria} ({item.idioma})
+                    {item.cantidad}x {item.categoria} ({item.idioma})
                   </p>
                 ))}
               </div>

@@ -31,6 +31,8 @@ export interface User {
   email: string;
   telefono: string;
   direccion: UserAddress;
+  idiomasPreferidos: string[];
+  categoriasPreferidas: string[];
 }
 
 export interface Order {
@@ -73,3 +75,15 @@ export const CATEGORIAS_POR_IDIOMA: Record<string, { id: string; nombre: string;
 export const CATEGORIAS = [
   ...CATEGORIAS_POR_IDIOMA.espanol,
 ];
+
+export function getCategoriaLabel(id: string): string {
+  for (const list of Object.values(CATEGORIAS_POR_IDIOMA)) {
+    const cat = list.find((c) => c.id === id);
+    if (cat) return cat.nombre;
+  }
+  return id;
+}
+
+export function getIdiomaLabel(id: string): string {
+  return IDIOMAS.find((i) => i.id === id)?.nombre ?? id;
+}

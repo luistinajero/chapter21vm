@@ -1,12 +1,21 @@
 import { getSupabase } from "./supabase";
 import { Book, Order, User, UserAddress } from "./types";
 
-// ==================== USERS ====================
-
-export async function getUsers(): Promise<User[]> {
-  const { data } = await (await getSupabase()).from("users").select("*");
-  if (!data) return [];
-  return data.map((row) => ({
+function mapUserRow(row: {
+  id: string;
+  nombre: string;
+  email: string;
+  telefono: string;
+  calle: string;
+  numero: string;
+  ciudad: string;
+  estado: string;
+  pais: string;
+  codigo_postal: string;
+  idiomas_preferidos?: string[] | null;
+  categorias_preferidas?: string[] | null;
+}): User {
+  return {
     id: row.id,
     nombre: row.nombre,
     email: row.email,
@@ -18,46 +27,30 @@ export async function getUsers(): Promise<User[]> {
       estado: row.estado,
       pais: row.pais,
       codigoPostal: row.codigo_postal,
-    } as UserAddress,
-  }));
+    },
+    idiomasPreferidos: row.idiomas_preferidos ?? [],
+    categoriasPreferidas: row.categorias_preferidas ?? [],
+  };
+}
+
+// ==================== USERS ====================
+
+export async function getUsers(): Promise<User[]> {
+  const { data } = await (await getSupabase()).from("users").select("*");
+  if (!data) return [];
+  return data.map(mapUserRow);
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {
   const { data } = await (await getSupabase()).from("users").select("*").eq("email", email).single();
   if (!data) return null;
-  return {
-    id: data.id,
-    nombre: data.nombre,
-    email: data.email,
-    telefono: data.telefono,
-    direccion: {
-      calle: data.calle,
-      numero: data.numero,
-      ciudad: data.ciudad,
-      estado: data.estado,
-      pais: data.pais,
-      codigoPostal: data.codigo_postal,
-    },
-  };
+  return mapUserRow(data);
 }
 
 export async function getUserById(id: string): Promise<User | null> {
   const { data } = await (await getSupabase()).from("users").select("*").eq("id", id).single();
   if (!data) return null;
-  return {
-    id: data.id,
-    nombre: data.nombre,
-    email: data.email,
-    telefono: data.telefono,
-    direccion: {
-      calle: data.calle,
-      numero: data.numero,
-      ciudad: data.ciudad,
-      estado: data.estado,
-      pais: data.pais,
-      codigoPostal: data.codigo_postal,
-    },
-  };
+  return mapUserRow(data);
 }
 
 export async function createUser(user: {
@@ -66,6 +59,8 @@ export async function createUser(user: {
   telefono: string;
   direccion: UserAddress;
   passwordHash: string;
+  idiomasPreferidos: string[];
+  categoriasPreferidas: string[];
 }): Promise<string> {
   const { data, error } = await (await getSupabase())
     .from("users")
@@ -80,6 +75,8 @@ export async function createUser(user: {
       pais: user.direccion.pais,
       codigo_postal: user.direccion.codigoPostal,
       password_hash: user.passwordHash,
+      idiomas_preferidos: user.idiomasPreferidos,
+      categorias_preferidas: user.categoriasPreferidas,
     })
     .select("id")
     .single();

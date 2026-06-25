@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { IDIOMAS, CATEGORIAS } from "@/lib/types";
 
 export default function RegistroPage() {
   const router = useRouter();
@@ -18,12 +19,37 @@ export default function RegistroPage() {
     pais: "México",
     codigoPostal: "",
   });
+  const [idiomasPreferidos, setIdiomasPreferidos] = useState<string[]>([]);
+  const [categoriasPreferidas, setCategoriasPreferidas] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const toggleIdioma = (id: string) => {
+    setIdiomasPreferidos((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleCategoria = (id: string) => {
+    setCategoriasPreferidas((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (idiomasPreferidos.length === 0) {
+      setError("Selecciona al menos un idioma de lectura");
+      return;
+    }
+
+    if (categoriasPreferidas.length === 0) {
+      setError("Selecciona al menos una categoría de libro");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -43,6 +69,8 @@ export default function RegistroPage() {
             pais: form.pais,
             codigoPostal: form.codigoPostal,
           },
+          idiomasPreferidos,
+          categoriasPreferidas,
         }),
       });
 
@@ -76,7 +104,6 @@ export default function RegistroPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Personal Info */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
           <input
@@ -124,6 +151,54 @@ export default function RegistroPage() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent outline-none"
             placeholder="55 1234 5678"
           />
+        </div>
+
+        {/* Reading preferences */}
+        <div className="pt-4 border-t border-gray-200">
+          <h3 className="font-semibold text-[var(--color-primary)] mb-1">Tus preferencias de lectura</h3>
+          <p className="text-sm text-gray-500 mb-4">Puedes seleccionar varias opciones</p>
+
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            ¿En qué idioma te gusta leer?
+          </label>
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            {IDIOMAS.map((idioma) => (
+              <button
+                key={idioma.id}
+                type="button"
+                onClick={() => toggleIdioma(idioma.id)}
+                className={`rounded-xl p-4 text-center border-2 transition-all ${
+                  idiomasPreferidos.includes(idioma.id)
+                    ? "border-[var(--color-accent)] bg-white shadow-md"
+                    : "border-gray-200 bg-white hover:border-gray-300"
+                }`}
+              >
+                <div className="text-3xl mb-1">{idioma.bandera}</div>
+                <div className="text-sm font-medium text-[var(--color-primary)]">{idioma.nombre}</div>
+              </button>
+            ))}
+          </div>
+
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            ¿Qué géneros te gustan?
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {CATEGORIAS.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => toggleCategoria(cat.id)}
+                className={`rounded-lg p-3 text-left border-2 transition-all flex items-center gap-2 ${
+                  categoriasPreferidas.includes(cat.id)
+                    ? "border-[var(--color-accent)] bg-[var(--color-cream)]"
+                    : "border-gray-200 bg-white hover:border-gray-300"
+                }`}
+              >
+                <span className="text-xl">{cat.emoji}</span>
+                <span className="text-xs font-medium text-[var(--color-primary)]">{cat.nombre}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Address */}
