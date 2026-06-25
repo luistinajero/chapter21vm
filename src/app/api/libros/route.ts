@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getBooks } from "@/lib/db";
+import { getBooksByTipo } from "@/lib/db";
 
 export async function GET() {
-  const books = await getBooks();
+  const books = await getBooksByTipo("sorpresa");
 
   const inventory: Record<string, number> = {};
   for (const book of books) {

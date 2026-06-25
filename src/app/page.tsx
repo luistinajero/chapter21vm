@@ -22,17 +22,12 @@ export default function Home() {
             Envuelto con amor, listo para descubrir.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/catalogo" className="btn-primary text-lg px-8 py-4">
-              Explorar Catálogo
+            <Link href="/libros-sorpresa" className="btn-primary text-lg px-8 py-4">
+              Libros Sorpresa
             </Link>
-            <a
-              href="https://www.instagram.com/chapter21vm/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-gold text-lg px-8 py-4"
-            >
-              📸 Síguenos en Instagram
-            </a>
+            <Link href="/ediciones-especiales" className="btn-gold text-lg px-8 py-4">
+              Ediciones Especiales
+            </Link>
           </div>
         </div>
       </section>
@@ -88,7 +83,7 @@ export default function Home() {
             ].map((cat) => (
               <Link
                 key={cat.name}
-                href="/catalogo"
+                href="/libros-sorpresa"
                 className="card-hover bg-[var(--color-cream)] border border-gray-200 rounded-xl p-6 text-center"
               >
                 <div className="text-4xl mb-2">{cat.emoji}</div>
@@ -99,23 +94,33 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Instagram CTA */}
+      {/* Social CTA */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-[var(--color-primary)] mb-4">
             ¿Quieres ver más?
           </h2>
           <p className="text-gray-600 mb-8">
-            Visita nuestro Instagram para ver unboxings, reseñas y más sorpresas.
+            Síguenos en redes sociales para ver unboxings, reseñas y más sorpresas.
           </p>
-          <a
-            href="https://www.instagram.com/chapter21vm/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary text-lg inline-block"
-          >
-            Visitar @chapter21vm
-          </a>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://www.instagram.com/chapter21vm/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary text-lg inline-block"
+            >
+              📸 Instagram @chapter21vm
+            </a>
+            <a
+              href="https://www.tiktok.com/@chapter21vm"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-gold text-lg inline-block"
+            >
+              🎵 TikTok @chapter21vm
+            </a>
+          </div>
         </div>
       </section>
     </>

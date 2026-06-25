@@ -119,6 +119,24 @@ export async function getBooks(): Promise<Book[]> {
     idioma: row.idioma,
     precio: Number(row.precio),
     stock: row.stock,
+    tipo: row.tipo || "sorpresa",
+    titulo: row.titulo || "",
+    descripcion: row.descripcion || "",
+  }));
+}
+
+export async function getBooksByTipo(tipo: string): Promise<Book[]> {
+  const { data } = await supabase.from("books").select("*").eq("tipo", tipo);
+  if (!data) return [];
+  return data.map((row) => ({
+    id: row.id,
+    categoria: row.categoria,
+    idioma: row.idioma,
+    precio: Number(row.precio),
+    stock: row.stock,
+    tipo: row.tipo || "sorpresa",
+    titulo: row.titulo || "",
+    descripcion: row.descripcion || "",
   }));
 }
 

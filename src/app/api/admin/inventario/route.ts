@@ -67,6 +67,9 @@ export async function POST(req: NextRequest) {
         idioma: book.idioma,
         precio: book.precio,
         stock: book.stock,
+        tipo: book.tipo || "sorpresa",
+        titulo: book.titulo || "",
+        descripcion: book.descripcion || "",
       });
       return NextResponse.json({ success: true });
     }

@@ -17,21 +17,32 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-3 text-[var(--color-gold)]">Enlaces</h3>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="/catalogo" className="hover:text-white">Catálogo</a></li>
+              <li><a href="/libros-sorpresa" className="hover:text-white">Libros Sorpresa</a></li>
+              <li><a href="/ediciones-especiales" className="hover:text-white">Ediciones Especiales</a></li>
               <li><a href="/registro" className="hover:text-white">Crear Cuenta</a></li>
               <li><a href="/login" className="hover:text-white">Ingresar</a></li>
             </ul>
           </div>
           <div>
             <h3 className="font-semibold mb-3 text-[var(--color-gold)]">Síguenos</h3>
-            <a
-              href="https://www.instagram.com/chapter21vm/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-gray-400 hover:text-white flex items-center gap-2"
-            >
-              📸 @chapter21vm
-            </a>
+            <div className="space-y-2">
+              <a
+                href="https://www.instagram.com/chapter21vm/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-gray-400 hover:text-white flex items-center gap-2"
+              >
+                📸 @chapter21vm en Instagram
+              </a>
+              <a
+                href="https://www.tiktok.com/@chapter21vm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-gray-400 hover:text-white flex items-center gap-2"
+              >
+                🎵 @chapter21vm en TikTok
+              </a>
+            </div>
             <p className="text-gray-500 text-xs mt-4">
               © {new Date().getFullYear()} Chapter 21. Todos los derechos reservados.
             </p>

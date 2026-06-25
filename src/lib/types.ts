@@ -4,6 +4,9 @@ export interface Book {
   idioma: string;
   precio: number;
   stock: number;
+  tipo: "sorpresa" | "edicion-especial";
+  titulo: string;
+  descripcion: string;
 }
 
 export interface CartItem {

@@ -17,10 +17,13 @@ export default function AdminPage() {
   const [adminToken, setAdminToken] = useState("");
 
   // New book form
+  const [newTipo, setNewTipo] = useState<"sorpresa" | "edicion-especial">("sorpresa");
   const [newCategoria, setNewCategoria] = useState(CATEGORIAS[0].id);
   const [newIdioma, setNewIdioma] = useState(IDIOMAS[0].id);
-  const [newPrecio, setNewPrecio] = useState(250);
+  const [newPrecio, setNewPrecio] = useState(350);
   const [newStock, setNewStock] = useState(1);
+  const [newTitulo, setNewTitulo] = useState("");
+  const [newDescripcion, setNewDescripcion] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +76,9 @@ export default function AdminPage() {
           idioma: newIdioma,
           precio: newPrecio,
           stock: newStock,
+          tipo: newTipo,
+          titulo: newTitulo,
+          descripcion: newDescripcion,
         },
       }),
     });
@@ -213,6 +219,51 @@ export default function AdminPage() {
             <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
               <Plus className="w-5 h-5" /> Agregar al inventario
             </h2>
+
+            {/* Tipo selector */}
+            <div className="flex gap-3 mb-4">
+              <button
+                onClick={() => setNewTipo("sorpresa")}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                  newTipo === "sorpresa"
+                    ? "bg-[var(--color-accent)] text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                Libro Sorpresa
+              </button>
+              <button
+                onClick={() => setNewTipo("edicion-especial")}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                  newTipo === "edicion-especial"
+                    ? "bg-[var(--color-accent)] text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                Edición Especial
+              </button>
+            </div>
+
+            {/* Title and description for special editions */}
+            {newTipo === "edicion-especial" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <input
+                  type="text"
+                  value={newTitulo}
+                  onChange={(e) => setNewTitulo(e.target.value)}
+                  placeholder="Título del libro"
+                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                />
+                <input
+                  type="text"
+                  value={newDescripcion}
+                  onChange={(e) => setNewDescripcion(e.target.value)}
+                  placeholder="Descripción breve"
+                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <select
                 value={newCategoria}
@@ -257,6 +308,8 @@ export default function AdminPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="text-left p-4">Tipo</th>
+                  <th className="text-left p-4">Título</th>
                   <th className="text-left p-4">Categoría</th>
                   <th className="text-left p-4">Idioma</th>
                   <th className="text-left p-4">Precio</th>
@@ -267,14 +320,24 @@ export default function AdminPage() {
               <tbody>
                 {books.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-gray-400">
+                    <td colSpan={7} className="p-8 text-center text-gray-400">
                       No hay libros en el inventario
                     </td>
                   </tr>
                 ) : (
                   books.map((book) => (
                     <tr key={book.id} className="border-t border-gray-100">
-                      <td className="p-4 font-medium">{book.categoria}</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          book.tipo === "edicion-especial"
+                            ? "bg-purple-100 text-purple-700"
+                            : "bg-blue-100 text-blue-700"
+                        }`}>
+                          {book.tipo === "edicion-especial" ? "Especial" : "Sorpresa"}
+                        </span>
+                      </td>
+                      <td className="p-4 font-medium">{book.titulo || "—"}</td>
+                      <td className="p-4">{book.categoria}</td>
                       <td className="p-4">{book.idioma}</td>
                       <td className="p-4">${book.precio} MXN</td>
                       <td className="p-4">
