@@ -20,6 +20,10 @@ export const metadata: Metadata = {
   title: "Chapter 21 | Libros Sorpresa",
   description:
     "Descubre tu próxima lectura favorita. Elige una categoría, recibe un libro sorpresa envuelto con amor.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
