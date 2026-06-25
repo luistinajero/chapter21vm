@@ -1,10 +1,10 @@
-import { supabase } from "./supabase";
+import { getSupabase } from "./supabase";
 import { Book, Order, User, UserAddress } from "./types";
 
 // ==================== USERS ====================
 
 export async function getUsers(): Promise<User[]> {
-  const { data } = await supabase.from("users").select("*");
+  const { data } = await getSupabase().from("users").select("*");
   if (!data) return [];
   return data.map((row) => ({
     id: row.id,
@@ -23,7 +23,7 @@ export async function getUsers(): Promise<User[]> {
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {
-  const { data } = await supabase.from("users").select("*").eq("email", email).single();
+  const { data } = await getSupabase().from("users").select("*").eq("email", email).single();
   if (!data) return null;
   return {
     id: data.id,
@@ -42,7 +42,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 }
 
 export async function getUserById(id: string): Promise<User | null> {
-  const { data } = await supabase.from("users").select("*").eq("id", id).single();
+  const { data } = await getSupabase().from("users").select("*").eq("id", id).single();
   if (!data) return null;
   return {
     id: data.id,
@@ -67,7 +67,7 @@ export async function createUser(user: {
   direccion: UserAddress;
   passwordHash: string;
 }): Promise<string> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("users")
     .insert({
       nombre: user.nombre,
@@ -92,11 +92,11 @@ export async function createUser(user: {
 }
 
 export async function deleteUser(userId: string): Promise<void> {
-  await supabase.from("users").delete().eq("id", userId);
+  await getSupabase().from("users").delete().eq("id", userId);
 }
 
 export async function getPasswordHash(email: string): Promise<string | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from("users")
     .select("password_hash")
     .eq("email", email)
@@ -105,13 +105,13 @@ export async function getPasswordHash(email: string): Promise<string | null> {
 }
 
 export async function updatePasswordHash(email: string, newHash: string): Promise<void> {
-  await supabase.from("users").update({ password_hash: newHash }).eq("email", email);
+  await getSupabase().from("users").update({ password_hash: newHash }).eq("email", email);
 }
 
 // ==================== BOOKS ====================
 
 export async function getBooks(): Promise<Book[]> {
-  const { data } = await supabase.from("books").select("*");
+  const { data } = await getSupabase().from("books").select("*");
   if (!data) return [];
   return data.map((row) => ({
     id: row.id,
@@ -126,7 +126,7 @@ export async function getBooks(): Promise<Book[]> {
 }
 
 export async function getBooksByTipo(tipo: string): Promise<Book[]> {
-  const { data } = await supabase.from("books").select("*").eq("tipo", tipo);
+  const { data } = await getSupabase().from("books").select("*").eq("tipo", tipo);
   if (!data) return [];
   return data.map((row) => ({
     id: row.id,
@@ -141,22 +141,22 @@ export async function getBooksByTipo(tipo: string): Promise<Book[]> {
 }
 
 export async function addBook(book: Omit<Book, "id">): Promise<void> {
-  await supabase.from("books").insert(book);
+  await getSupabase().from("books").insert(book);
 }
 
 export async function deleteBook(bookId: string): Promise<void> {
-  await supabase.from("books").delete().eq("id", bookId);
+  await getSupabase().from("books").delete().eq("id", bookId);
 }
 
 // ==================== ORDERS ====================
 
 export async function getOrders(): Promise<Order[]> {
-  const { data: ordersData } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
+  const { data: ordersData } = await getSupabase().from("orders").select("*").order("created_at", { ascending: false });
   if (!ordersData) return [];
 
   const orders: Order[] = [];
   for (const row of ordersData) {
-    const { data: items } = await supabase.from("order_items").select("*").eq("order_id", row.id);
+    const { data: items } = await getSupabase().from("order_items").select("*").eq("order_id", row.id);
     orders.push({
       id: row.id,
       userId: row.user_id,
@@ -176,7 +176,7 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function getOrdersByUserId(userId: string): Promise<Order[]> {
-  const { data: ordersData } = await supabase
+  const { data: ordersData } = await getSupabase()
     .from("orders")
     .select("*")
     .eq("user_id", userId)
@@ -185,7 +185,7 @@ export async function getOrdersByUserId(userId: string): Promise<Order[]> {
 
   const orders: Order[] = [];
   for (const row of ordersData) {
-    const { data: items } = await supabase.from("order_items").select("*").eq("order_id", row.id);
+    const { data: items } = await getSupabase().from("order_items").select("*").eq("order_id", row.id);
     orders.push({
       id: row.id,
       userId: row.user_id,
@@ -211,7 +211,7 @@ export async function createOrder(order: {
   direccionEnvio: string;
   fecha: string;
 }): Promise<string> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("orders")
     .insert({
       user_id: order.userId,
@@ -236,7 +236,7 @@ export async function createOrder(order: {
     precio: item.precio,
   }));
 
-  const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+  const { error: itemsError } = await getSupabase().from("order_items").insert(orderItems);
   if (itemsError) {
     console.error("Supabase order_items error:", itemsError);
   }
@@ -245,24 +245,24 @@ export async function createOrder(order: {
 }
 
 export async function updateOrderStatus(orderId: string, estado: string): Promise<void> {
-  await supabase.from("orders").update({ estado }).eq("id", orderId);
+  await getSupabase().from("orders").update({ estado }).eq("id", orderId);
 }
 
 // ==================== RESET TOKENS ====================
 
 export async function saveResetToken(email: string, token: string, expires: number): Promise<void> {
-  await supabase.from("reset_tokens").delete().eq("email", email);
-  await supabase.from("reset_tokens").insert({ email, token, expires_at: expires });
+  await getSupabase().from("reset_tokens").delete().eq("email", email);
+  await getSupabase().from("reset_tokens").insert({ email, token, expires_at: expires });
 }
 
 export async function getResetToken(token: string): Promise<{ email: string; expires: number } | null> {
-  const { data } = await supabase.from("reset_tokens").select("*").eq("token", token).single();
+  const { data } = await getSupabase().from("reset_tokens").select("*").eq("token", token).single();
   if (!data) return null;
   return { email: data.email, expires: data.expires_at };
 }
 
 export async function deleteResetToken(token: string): Promise<void> {
-  await supabase.from("reset_tokens").delete().eq("token", token);
+  await getSupabase().from("reset_tokens").delete().eq("token", token);
 }
 
 // ==================== ADMIN ====================
