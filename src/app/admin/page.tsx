@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORIAS, IDIOMAS } from "@/lib/types";
+import { CATEGORIAS_POR_IDIOMA, IDIOMAS } from "@/lib/types";
 import type { Book, Order, User } from "@/lib/types";
 import { Lock, Package, BookOpen, Plus, Trash2, LogOut, Users } from "lucide-react";
 
@@ -18,8 +18,8 @@ export default function AdminPage() {
 
   // New book form
   const [newTipo, setNewTipo] = useState<"sorpresa" | "edicion-especial">("sorpresa");
-  const [newCategoria, setNewCategoria] = useState(CATEGORIAS[0].id);
   const [newIdioma, setNewIdioma] = useState(IDIOMAS[0].id);
+  const [newCategoria, setNewCategoria] = useState(CATEGORIAS_POR_IDIOMA[IDIOMAS[0].id][0].id);
   const [newPrecio, setNewPrecio] = useState(350);
   const [newStock, setNewStock] = useState(1);
   const [newTitulo, setNewTitulo] = useState("");
@@ -266,21 +266,25 @@ export default function AdminPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <select
+                value={newIdioma}
+                onChange={(e) => {
+                  setNewIdioma(e.target.value);
+                  const cats = CATEGORIAS_POR_IDIOMA[e.target.value] || [];
+                  if (cats.length > 0) setNewCategoria(cats[0].id);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg"
+              >
+                {IDIOMAS.map((i) => (
+                  <option key={i.id} value={i.id}>{i.bandera} {i.nombre}</option>
+                ))}
+              </select>
+              <select
                 value={newCategoria}
                 onChange={(e) => setNewCategoria(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg"
               >
-                {CATEGORIAS.map((c) => (
+                {(CATEGORIAS_POR_IDIOMA[newIdioma] || []).map((c) => (
                   <option key={c.id} value={c.id}>{c.nombre}</option>
-                ))}
-              </select>
-              <select
-                value={newIdioma}
-                onChange={(e) => setNewIdioma(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                {IDIOMAS.map((i) => (
-                  <option key={i.id} value={i.id}>{i.nombre}</option>
                 ))}
               </select>
               <input

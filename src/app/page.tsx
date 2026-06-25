@@ -72,14 +72,14 @@ export default function Home() {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { emoji: "💕", name: "Romance" },
-              { emoji: "🔍", name: "Misterio" },
-              { emoji: "🐉", name: "Fantasía" },
-              { emoji: "🚀", name: "Ciencia Ficción" },
-              { emoji: "😱", name: "Thriller" },
-              { emoji: "📚", name: "Clásicos" },
-              { emoji: "🌱", name: "Desarrollo Personal" },
-              { emoji: "✨", name: "Juvenil" },
+              { emoji: "✨", name: "Novelas Juvenil" },
+              { emoji: "💕", name: "Novelas Romántica" },
+              { emoji: "📚", name: "Novela Clásica" },
+              { emoji: "🐉", name: "Fantasía/Ficción" },
+              { emoji: "🏛️", name: "Novela Histórica" },
+              { emoji: "🔍", name: "Misterio y Thriller" },
+              { emoji: "🧒", name: "Infantil" },
+              { emoji: "🌱", name: "Autoayuda" },
             ].map((cat) => (
               <Link
                 key={cat.name}

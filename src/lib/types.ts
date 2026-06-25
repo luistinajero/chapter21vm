@@ -43,18 +43,33 @@ export interface Order {
   direccionEnvio: string;
 }
 
-export const CATEGORIAS = [
-  { id: "romance", nombre: "Romance", emoji: "💕", color: "bg-pink-100 text-pink-800" },
-  { id: "misterio", nombre: "Misterio", emoji: "🔍", color: "bg-purple-100 text-purple-800" },
-  { id: "fantasia", nombre: "Fantasía", emoji: "🐉", color: "bg-indigo-100 text-indigo-800" },
-  { id: "ciencia-ficcion", nombre: "Ciencia Ficción", emoji: "🚀", color: "bg-blue-100 text-blue-800" },
-  { id: "thriller", nombre: "Thriller", emoji: "😱", color: "bg-red-100 text-red-800" },
-  { id: "clasicos", nombre: "Clásicos", emoji: "📚", color: "bg-amber-100 text-amber-800" },
-  { id: "desarrollo-personal", nombre: "Desarrollo Personal", emoji: "🌱", color: "bg-green-100 text-green-800" },
-  { id: "juvenil", nombre: "Juvenil", emoji: "✨", color: "bg-cyan-100 text-cyan-800" },
-];
-
 export const IDIOMAS = [
   { id: "espanol", nombre: "Español", bandera: "🇲🇽" },
   { id: "ingles", nombre: "Inglés", bandera: "🇺🇸" },
+];
+
+export const CATEGORIAS_POR_IDIOMA: Record<string, { id: string; nombre: string; emoji: string }[]> = {
+  espanol: [
+    { id: "novela-juvenil", nombre: "Novelas Juvenil", emoji: "✨" },
+    { id: "novela-romantica", nombre: "Novelas Romántica", emoji: "💕" },
+    { id: "novela-clasica", nombre: "Novela Clásica", emoji: "📚" },
+    { id: "novela-fantasia-ficcion", nombre: "Novela Fantasía/Ficción", emoji: "🐉" },
+    { id: "novela-historica", nombre: "Novela Histórica", emoji: "🏛️" },
+    { id: "misterio-thriller", nombre: "Misterio y Thriller", emoji: "🔍" },
+    { id: "infantil", nombre: "Infantil", emoji: "🧒" },
+    { id: "autoayuda", nombre: "Autoayuda", emoji: "🌱" },
+  ],
+  ingles: [
+    { id: "novela-juvenil", nombre: "Novelas Juvenil", emoji: "✨" },
+    { id: "novela-romantica", nombre: "Novelas Romántica", emoji: "💕" },
+    { id: "novela-clasica", nombre: "Novela Clásica", emoji: "📚" },
+    { id: "novela-fantasia-ficcion", nombre: "Novela Fantasía/Ficción", emoji: "🐉" },
+    { id: "novela-historica", nombre: "Novela Histórica", emoji: "🏛️" },
+    { id: "misterio-thriller", nombre: "Misterio y Thriller", emoji: "🔍" },
+    { id: "infantil", nombre: "Infantil", emoji: "🧒" },
+  ],
+};
+
+export const CATEGORIAS = [
+  ...CATEGORIAS_POR_IDIOMA.espanol,
 ];

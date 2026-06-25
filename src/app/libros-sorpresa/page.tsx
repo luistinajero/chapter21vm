@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
-import { CATEGORIAS, IDIOMAS } from "@/lib/types";
+import { IDIOMAS, CATEGORIAS_POR_IDIOMA } from "@/lib/types";
 import { ShoppingCart, Check, AlertTriangle } from "lucide-react";
 
 export default function LibrosSorpresaPage() {
   const { addItem } = useCart();
-  const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
   const [selectedIdioma, setSelectedIdioma] = useState<string | null>(null);
+  const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [loadingInventory, setLoadingInventory] = useState(true);
@@ -21,6 +21,8 @@ export default function LibrosSorpresaPage() {
       .finally(() => setLoadingInventory(false));
   }, []);
 
+  const categorias = selectedIdioma ? CATEGORIAS_POR_IDIOMA[selectedIdioma] || [] : [];
+
   const getStock = (): number => {
     if (!selectedCategoria || !selectedIdioma) return 0;
     const key = `${selectedCategoria}__${selectedIdioma}`;
@@ -29,13 +31,20 @@ export default function LibrosSorpresaPage() {
 
   const hasStock = getStock() > 0;
 
+  const handleSelectIdioma = (idiomaId: string) => {
+    setSelectedIdioma(idiomaId);
+    setSelectedCategoria(null);
+  };
+
   const handleAddToCart = () => {
     if (!selectedCategoria || !selectedIdioma || !hasStock) return;
 
-    const cat = CATEGORIAS.find((c) => c.id === selectedCategoria);
+    const cat = categorias.find((c) => c.id === selectedCategoria);
+    const idioma = IDIOMAS.find((i) => i.id === selectedIdioma);
+
     addItem({
       categoria: cat?.nombre || selectedCategoria,
-      idioma: IDIOMAS.find((i) => i.id === selectedIdioma)?.nombre || selectedIdioma,
+      idioma: idioma?.nombre || selectedIdioma,
       cantidad: 1,
       precio: 350,
     });
@@ -52,53 +61,57 @@ export default function LibrosSorpresaPage() {
         Libros Sorpresa
       </h1>
       <p className="text-center text-gray-600 mb-12">
-        Selecciona una categoría y un idioma. ¡Nosotros hacemos la magia!
+        Selecciona un idioma y una categoría. ¡Nosotros hacemos la magia!
       </p>
 
-      {/* Step 1: Category */}
+      {/* Step 1: Language */}
       <div className="mb-10">
         <h2 className="text-xl font-bold text-[var(--color-primary)] mb-4">
-          1. ¿Qué género te gustaría?
+          1. ¿En qué idioma?
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {CATEGORIAS.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategoria(cat.id)}
-              className={`card-hover rounded-xl p-4 text-center border-2 transition-all ${
-                selectedCategoria === cat.id
-                  ? "border-[var(--color-accent)] bg-white shadow-md"
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
-            >
-              <div className="text-3xl mb-1">{cat.emoji}</div>
-              <div className="text-sm font-medium text-[var(--color-primary)]">{cat.nombre}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Step 2: Language */}
-      <div className="mb-10">
-        <h2 className="text-xl font-bold text-[var(--color-primary)] mb-4">
-          2. ¿En qué idioma?
-        </h2>
-        <div className="grid grid-cols-2 gap-3 max-w-md">
+        <div className="grid grid-cols-2 gap-4 max-w-md">
           {IDIOMAS.map((idioma) => (
             <button
               key={idioma.id}
-              onClick={() => setSelectedIdioma(idioma.id)}
-              className={`card-hover rounded-xl p-4 text-center border-2 transition-all ${
+              onClick={() => handleSelectIdioma(idioma.id)}
+              className={`card-hover rounded-xl p-6 text-center border-2 transition-all ${
                 selectedIdioma === idioma.id
                   ? "border-[var(--color-accent)] bg-white shadow-md"
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}
             >
-              <div className="text-3xl mb-1">{idioma.bandera}</div>
-              <div className="text-sm font-medium text-[var(--color-primary)]">{idioma.nombre}</div>
+              <div className="text-5xl mb-2">{idioma.bandera}</div>
+              <div className="text-base font-semibold text-[var(--color-primary)]">{idioma.nombre}</div>
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Step 2: Category (based on selected language) */}
+      <div className="mb-10">
+        <h2 className="text-xl font-bold text-[var(--color-primary)] mb-4">
+          2. ¿Qué género te gustaría?
+        </h2>
+        {!selectedIdioma ? (
+          <p className="text-gray-400 italic">Selecciona un idioma primero</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {categorias.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategoria(cat.id)}
+                className={`card-hover rounded-xl p-4 text-center border-2 transition-all ${
+                  selectedCategoria === cat.id
+                    ? "border-[var(--color-accent)] bg-white shadow-md"
+                    : "border-gray-200 bg-white hover:border-gray-300"
+                }`}
+              >
+                <div className="text-3xl mb-1">{cat.emoji}</div>
+                <div className="text-sm font-medium text-[var(--color-primary)]">{cat.nombre}</div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Summary & Add to Cart */}
@@ -107,14 +120,15 @@ export default function LibrosSorpresaPage() {
           <div>
             <p className="text-lg font-bold text-[var(--color-primary)]">
               Libro Sorpresa
-              {selectedCategoria && (
-                <span className="text-[var(--color-accent)]">
-                  {" "}— {CATEGORIAS.find((c) => c.id === selectedCategoria)?.nombre}
-                </span>
-              )}
               {selectedIdioma && (
                 <span className="text-gray-500">
-                  {" "}({IDIOMAS.find((i) => i.id === selectedIdioma)?.nombre})
+                  {" "}— {IDIOMAS.find((i) => i.id === selectedIdioma)?.bandera}{" "}
+                  {IDIOMAS.find((i) => i.id === selectedIdioma)?.nombre}
+                </span>
+              )}
+              {selectedCategoria && (
+                <span className="text-[var(--color-accent)]">
+                  {" "}/ {categorias.find((c) => c.id === selectedCategoria)?.nombre}
                 </span>
               )}
             </p>
