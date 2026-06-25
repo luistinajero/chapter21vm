@@ -92,7 +92,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ error: "Acción no válida" }, { status: 400 });
-  } catch {
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+  } catch (error) {
+    console.error("Admin inventario error:", error);
+    const message = error instanceof Error ? error.message : "Error interno del servidor";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

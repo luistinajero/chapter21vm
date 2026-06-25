@@ -24,6 +24,8 @@ export default function AdminPage() {
   const [newStock, setNewStock] = useState(1);
   const [newTitulo, setNewTitulo] = useState("");
   const [newDescripcion, setNewDescripcion] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [addMessage, setAddMessage] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,26 +65,64 @@ export default function AdminPage() {
   };
 
   const addBook = async () => {
-    const res = await fetch("/api/admin/inventario", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${adminToken}`,
-      },
-      body: JSON.stringify({
-        action: "add",
-        book: {
-          categoria: newCategoria,
-          idioma: newIdioma,
-          precio: newPrecio,
-          stock: newStock,
-          tipo: newTipo,
-          titulo: newTitulo,
-          descripcion: newDescripcion,
+    setAddMessage("");
+
+    if (!newStock || newStock < 1) {
+      setAddMessage("El stock debe ser al menos 1");
+      return;
+    }
+
+    if (!newPrecio || newPrecio < 1) {
+      setAddMessage("El precio debe ser mayor a 0");
+      return;
+    }
+
+    if (newTipo === "edicion-especial" && !newTitulo.trim()) {
+      setAddMessage("El título es obligatorio para ediciones especiales");
+      return;
+    }
+
+    setAdding(true);
+
+    try {
+      const res = await fetch("/api/admin/inventario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
         },
-      }),
-    });
-    if (res.ok) loadData(adminToken);
+        body: JSON.stringify({
+          action: "add",
+          book: {
+            categoria: newCategoria,
+            idioma: newIdioma,
+            precio: newPrecio,
+            stock: newStock,
+            tipo: newTipo,
+            titulo: newTitulo.trim(),
+            descripcion: newDescripcion.trim(),
+          },
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setAddMessage(data.error || "No se pudo agregar el libro. Verifica tu sesión de admin.");
+        return;
+      }
+
+      setAddMessage("Libro agregado correctamente");
+      if (newTipo === "edicion-especial") {
+        setNewTitulo("");
+        setNewDescripcion("");
+      }
+      await loadData(adminToken);
+    } catch {
+      setAddMessage("Error de conexión al agregar el libro");
+    } finally {
+      setAdding(false);
+    }
   };
 
   const deleteBook = async (id: string) => {
@@ -223,6 +263,7 @@ export default function AdminPage() {
             {/* Tipo selector */}
             <div className="flex gap-3 mb-4">
               <button
+                type="button"
                 onClick={() => setNewTipo("sorpresa")}
                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                   newTipo === "sorpresa"
@@ -233,6 +274,7 @@ export default function AdminPage() {
                 Libro Sorpresa
               </button>
               <button
+                type="button"
                 onClick={() => setNewTipo("edicion-especial")}
                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                   newTipo === "edicion-especial"
@@ -297,15 +339,25 @@ export default function AdminPage() {
               <input
                 type="number"
                 value={newStock}
-                onChange={(e) => setNewStock(Number(e.target.value))}
+                onChange={(e) => setNewStock(Math.max(1, Number(e.target.value) || 1))}
                 placeholder="Stock"
                 min={1}
                 className="px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
-            <button onClick={addBook} className="btn-primary mt-4">
-              Agregar
+            <button
+              type="button"
+              onClick={addBook}
+              disabled={adding}
+              className="btn-primary mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {adding ? "Agregando..." : "Agregar"}
             </button>
+            {addMessage && (
+              <p className={`mt-3 text-sm font-medium ${addMessage.includes("correctamente") ? "text-green-600" : "text-red-600"}`}>
+                {addMessage}
+              </p>
+            )}
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
