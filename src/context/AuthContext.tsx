@@ -25,8 +25,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem("chapter21-token");
     const savedUser = localStorage.getItem("chapter21-user");
     if (token && savedUser) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUser(JSON.parse(savedUser));
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(false);
   }, []);
 
