@@ -103,7 +103,7 @@ export default function Home() {
           <p className="text-gray-600 mb-8">
             Síguenos en redes sociales para ver unboxings, reseñas y más sorpresas.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
             <a
               href="https://www.instagram.com/chapter21vm/"
               target="_blank"
@@ -119,6 +119,14 @@ export default function Home() {
               className="btn-gold text-lg inline-block"
             >
               🎵 TikTok @chapter21vm
+            </a>
+            <a
+              href="https://wa.me/5217225104658"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary text-lg inline-block bg-green-600 hover:bg-green-700"
+            >
+              💬 Escríbenos por WhatsApp
             </a>
           </div>
         </div>

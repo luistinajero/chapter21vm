@@ -42,6 +42,14 @@ export default function Footer() {
               >
                 🎵 @chapter21vm en TikTok
               </a>
+              <a
+                href="https://wa.me/5217225104658"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-gray-400 hover:text-white flex items-center gap-2"
+              >
+                💬 WhatsApp 722 510 4658
+              </a>
             </div>
             <p className="text-gray-500 text-xs mt-4">
               © {new Date().getFullYear()} Chapter 21. Todos los derechos reservados.
